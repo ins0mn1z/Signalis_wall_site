@@ -1,0 +1,10 @@
+body {
+    margin: 0;
+    overflow: hidden !important;
+}
+
+canvas{
+    position: absolute;
+    background-color: white;
+    overflow: hidden;
+}
