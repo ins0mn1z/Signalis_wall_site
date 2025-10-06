@@ -11,8 +11,11 @@ img2.src = "assets/eyecloseup_eyeWhite.png";
 img3src = "assets/eyecloseup_pupil_sclera.png"
 const img4 = new Image();
 img4.src = "assets/eyecloseup_hair.png";
-img5src = "assets/eyecloseup_pupil_reflect_side.png"
-
+reflectside = "assets/eyecloseup_pupil_reflect_side.png"
+reflectfront = "assets/eyecloseup_pupil_reflect_front.png"
+reflectback = "assets/eyecloseup_pupil_reflect_back.png"
+reflectinner = "assets/eyecloseup_pupil_reflection_inner.png"
+reflectdepth = "assets/eyecloseup_pupil_reflect_depth.png"
 class Signalis {
 	constructor(ctx, x, y, width, height, image, zoomMultiplier) {
 		this.ctx = ctx;
@@ -48,22 +51,32 @@ class Eye {
 		this.image = new Image();
 		this.image.src = imageSrc;
 
-		// reflection stuff;
-		this.reflectionImage = null;
-		this.reflectionOffset = { x: 0, y: 0}
-		this.reflectionLag = 0.25; // default lag;
-		this.reflectionPos = {x: centerX, y: centerY};
-		this.reflectionSize = null;
+
+		/**
+		 * @type {Array<{image: HTMLImageElement, offset: {x:number,y:number}, lag:number, size:number, pos:{x:number,y:number}}>} 
+		 */
+		this.reflections = [];
+
+		// // reflection stuff;
+		// this.reflectionImage = null;
+		// this.reflectionOffset = { x: 0, y: 0}
+		// this.reflectionLag = 0.25; // default lag;
+		// this.reflectionPos = {x: centerX, y: centerY};
+		// this.reflectionSize = null;
 	}
 
 	// set reflection Layer;
-	setReflection(imageSrc, offsetX = 0, offsetY = 0, refSize = 0.1, refLag = 0.25){
-		this.reflectionImage = new Image();
-		this.reflectionImage.src = imageSrc;
-		this.reflectionOffset.x = offsetX;
-		this.reflectionOffset.y = offsetY;
-		this.reflectionSize = refSize;
-		this.reflectionLag = refLag;
+	addReflection(src, offsetX = 0, offsetY = 0, lag = 0.25, size = 0.1){
+		const img = new Image();
+		img.src = src;
+		const refSize = size < 1 ? this.size * size : size;
+		this.reflections.push({
+			image: img,
+			offset: {x: offsetX, y: offsetY},
+			lag,
+			size: refSize,
+			pos: {x: this.center.x, y: this.center.y}
+		});
 	}
 
 
@@ -96,11 +109,12 @@ class Eye {
 		this.pupil.y += (targetY - this.pupil.y) * this.lag;
 
 		//reflection calculation;
-		const reflectTargetX = this.pupil.x + this.reflectionOffset.x;
-		const reflectTargetY = this.pupil.y + this.reflectionOffset.y;
-		this.reflectionPos.x += (reflectTargetX - this.reflectionPos.x) * this.reflectionLag;
-		this.reflectionPos.y += (reflectTargetY - this.reflectionPos.y) * this.reflectionLag;
-
+		for (const ref of this.reflections) {
+			const TargetX = this.pupil.x + ref.offset.x;
+			const TargetY = this.pupil.y + ref.offset.y;
+			ref.pos.x += (TargetX - ref.pos.x) * ref.lag;
+			ref.pos.y += (TargetY - ref.pos.y) * ref.lag;
+		}
 	}
 
 	drawEye(debug = false) {
@@ -144,16 +158,17 @@ class Eye {
 
   drawReflection(){
 	const ctx = this.ctx;
-	if (!this.reflectionImage || !this.reflectionImage.complete) return;
-	// set reflection layer size so it's proportional to the eye;
-	const size = this.reflectionSize * 0.3;
-	ctx.drawImage(
-		this.reflectionImage,
-		this.reflectionPos.x - size / 2,
-		this.reflectionPos.y - size / 2,
-		size,
-		size
-	)
+	for (const ref of this.reflections) {
+		if (!ref.image.complete) continue;
+		ctx.drawImage(
+			ref.image, 
+			ref.pos.x - ref.size / 2,
+			ref.pos.y - ref.size /2,	
+			ref.size,
+			ref.size
+		);
+	}
+
   }
 }
 
@@ -167,7 +182,13 @@ window.addEventListener('load', () => {
 	const eyeWhite = new Signalis(ctx, 0, 0, canvas.width, canvas.height, img2, 2)
 	const hair = new Signalis(ctx, 0, 0, canvas.width, canvas.height, img4, 2)
 	const eye = new Eye(ctx, canvas.width/2, canvas.height/2, 200, 120, img3src, 0.20, 500)
-	eye.setReflection(img5src, 100, -110, 200, 0.50)	
+	eye.addReflection(reflectinner, 0, -10, 0.90, 200)
+	eye.addReflection(reflectdepth, 0, 0, 1, 400)
+	eye.addReflection(reflectback, -6, 30, 0.50, 50)
+	eye.addReflection(reflectside, 100, -100, 0.50, 70)
+	eye.addReflection(reflectfront, -10, 40, 0.50, 80)
+
+	console.log(eye)
 	canvas.addEventListener('mousemove', (e) => {
 		const rect = canvas.getBoundingClientRect();
 		const mouseX = e.clientX - rect.left;
