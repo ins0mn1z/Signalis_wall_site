@@ -13,7 +13,6 @@ const img4 = new Image();
 img4.src = "assets/eyecloseup_hair.png";
 reflectside = "assets/eyecloseup_pupil_reflect_side.png"
 reflectfront = "assets/eyecloseup_pupil_reflect_front.png"
-reflectfront2 = "assets/eyecloseup_pupil_reflect_front.png"
 reflectinner = "assets/eyecloseup_pupil_reflection_inner.png"
 reflectdepth = "assets/eyecloseup_pupil_reflect_depth.png"
 class Signalis {
