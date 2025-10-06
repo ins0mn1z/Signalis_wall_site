@@ -13,7 +13,7 @@ const img4 = new Image();
 img4.src = "assets/eyecloseup_hair.png";
 reflectside = "assets/eyecloseup_pupil_reflect_side.png"
 reflectfront = "assets/eyecloseup_pupil_reflect_front.png"
-reflectback = "assets/eyecloseup_pupil_reflect_back.png"
+reflectfront2 = "assets/eyecloseup_pupil_reflect_front.png"
 reflectinner = "assets/eyecloseup_pupil_reflection_inner.png"
 reflectdepth = "assets/eyecloseup_pupil_reflect_depth.png"
 class Signalis {
@@ -53,7 +53,7 @@ class Eye {
 
 
 		/**
-		 * @type {Array<{image: HTMLImageElement, offset: {x:number,y:number}, lag:number, size:number, pos:{x:number,y:number}}>} 
+		 * @type {Array<{image: HTMLImageElement, offset: {x:number,y:number}, anchored: number, lag:number, size:number, pos:{x:number,y:number}}>} 
 		 */
 		this.reflections = [];
 
@@ -66,13 +66,14 @@ class Eye {
 	}
 
 	// set reflection Layer;
-	addReflection(src, offsetX = 0, offsetY = 0, lag = 0.25, size = 0.1){
+	addReflection(src, offsetX = 0, offsetY = 0, scale = 1.0, lag = 0.25, size = 0.1){
 		const img = new Image();
 		img.src = src;
 		const refSize = size < 1 ? this.size * size : size;
 		this.reflections.push({
 			image: img,
 			offset: {x: offsetX, y: offsetY},
+			anchorScale: scale, 
 			lag,
 			size: refSize,
 			pos: {x: this.center.x, y: this.center.y}
@@ -110,10 +111,38 @@ class Eye {
 
 		//reflection calculation;
 		for (const ref of this.reflections) {
-			const TargetX = this.pupil.x + ref.offset.x;
-			const TargetY = this.pupil.y + ref.offset.y;
-			ref.pos.x += (TargetX - ref.pos.x) * ref.lag;
-			ref.pos.y += (TargetY - ref.pos.y) * ref.lag;
+			const scaledW = (this.boundary.w / 2) * ref.anchorScale;
+			const scaledH = (this.boundary.h / 2) * ref.anchorScale;
+			const dxScaled = dx * ref.anchorScale;
+			const dyScaled = dy * ref.anchorScale;
+
+			const insideSmall = (dxScaled * dxScaled) / (scaledW ** 2) + (dyScaled * dyScaled) / (scaledH ** 2 ) <= 1;
+			let targetRefX, targetRefY;
+/* 
+			if (ref.anchored) {
+				ref.pos.x = this.center.x + ref.offset.x;
+				ref.pos.y = this.center.y + ref.offset.y;
+			} else {
+				const TargetX = this.pupil.x + ref.offset.x;
+				const TargetY = this.pupil.y + ref.offset.y;
+				ref.pos.x += (TargetX - ref.pos.x) * ref.lag;
+				ref.pos.y += (TargetY - ref.pos.y) * ref.lag;
+			}
+			 */
+
+			if (insideSmall) {
+				targetRefX = this.center.x + dxScaled;
+				targetRefY = this.center.y + dyScaled;
+			} else {
+				const angle = Math.atan2(dyScaled, dxScaled)
+				targetRefX = this.center.x + scaledW * Math.cos(angle);
+				targetRefY = this.center.y + scaledH * Math.sin(angle);
+			}
+			targetRefX += ref.offset.x;
+			targetRefY += ref.offset.y;
+			ref.pos.x += (targetRefX - ref.pos.x) * ref.lag;
+			ref.pos.y += (targetRefY - ref.pos.y) * ref.lag;
+
 		}
 	}
 
@@ -181,12 +210,11 @@ window.addEventListener('load', () => {
 	const face = new Signalis(ctx, 0, 0, canvas.width, canvas.height, img1, 2)
 	const eyeWhite = new Signalis(ctx, 0, 0, canvas.width, canvas.height, img2, 2)
 	const hair = new Signalis(ctx, 0, 0, canvas.width, canvas.height, img4, 2)
-	const eye = new Eye(ctx, canvas.width/2, canvas.height/2, 200, 120, img3src, 0.20, 500)
-	eye.addReflection(reflectinner, 0, -10, 0.90, 200)
-	eye.addReflection(reflectdepth, 0, 0, 1, 400)
-	eye.addReflection(reflectback, -6, 30, 0.50, 50)
-	eye.addReflection(reflectside, 100, -100, 0.50, 70)
-	eye.addReflection(reflectfront, -10, 40, 0.50, 80)
+	const eye = new Eye(ctx, canvas.width/2, canvas.height/2, 200, 110, img3src, 0.10, 500)
+	eye.addReflection(reflectinner, 0, -40, 0.2, 0.10, 200)
+	eye.addReflection(reflectdepth, 0, -19, 0.8, 0.10, 400)
+	eye.addReflection(reflectside, 100, -80, 1, 0.09, 60)
+	eye.addReflection(reflectfront, 0, 0, 0.5, 0.09, 60)
 
 	console.log(eye)
 	canvas.addEventListener('mousemove', (e) => {
