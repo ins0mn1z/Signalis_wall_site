@@ -8,3 +8,7 @@ canvas{
     background-color: white;
     overflow: hidden;
 }
+
+#myCanvas{
+    z-index: 1;
+}
