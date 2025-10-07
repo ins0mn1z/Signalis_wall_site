@@ -417,11 +417,11 @@ window.addEventListener('load', () => {
 	})
 	eye.addReflection(reflectinner, 0, -40, 0.2, 0.10, 200)
 	eye.addReflection(reflectdepth, 0, -19, 0.8, 0.10, 400)
-	eye.addReflection(reflectside, 100, -80, 1, 0.09, 60)
+	eye.addReflection(reflectside, 120, -80, 1, 0.09, 70)
 	eye.addReflection(reflectfront, 0, 0, 0.5, 0.09, 60)
 	const crt = new FaceCRT(ctx, canvas.width, canvas.height, {
-		lineSpacing: 3, 
-		lineOpacity: 0.9,
+		lineSpacing: 2, 
+		lineOpacity: 0.5,
 		flickerStrength: 0.3,
 		vignetteStrength: 0.8,
 		distortion: 0.005
@@ -447,4 +447,5 @@ window.addEventListener('load', () => {
 		requestAnimationFrame(animate);
 	}
 	animate()	
+		
 })
