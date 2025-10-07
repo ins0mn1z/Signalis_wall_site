@@ -39,7 +39,7 @@ class Signalis {
 
 
 class Eye {
-  constructor(ctx, centerX, centerY, width, height, imageSrc, lag = 0.15, size = 80) {
+  constructor(ctx, centerX, centerY, width, height, imageSrc, offX = 0, offY = 0, lag = 0.15, size = 80) {
 		this.ctx = ctx;
 		this.center = { x: centerX, y: centerY };
 		this.boundary = { w: width, h: height };
@@ -48,9 +48,13 @@ class Eye {
 		this.lag = lag;
 		this.size = size;
 		
+		this.offset = {x: offX, y:offY}
 		this.image = new Image();
 		this.image.src = imageSrc;
-
+		this.pupil.x = this.pupil.x + this.offset.x;
+		this.pupil.y = this.pupil.y + this.offset.y;
+		this.center.x = this.center.x + this.offset.x;
+		this.center.y = this.center.y + this.offset.y;
 
 		/**
 		 * @type {Array<{image: HTMLImageElement, offset: {x:number,y:number}, anchored: number, lag:number, size:number, pos:{x:number,y:number}}>} 
@@ -89,6 +93,7 @@ class Eye {
 	update() {
 		const dx = this.mouse.x - this.center.x;
 		const dy = this.mouse.y - this.center.y;
+
 
 		// Check if the mouse is inside the elliptical boundary
 		const inside =
@@ -406,7 +411,7 @@ window.addEventListener('load', () => {
 		offsetX: -200,
 		offsetY: -600,
 	} )
-	const eye = new Eye(ctx, canvas.width/2, canvas.height/2, 200, 110, img3src, 0.10, 500)
+	const eye = new Eye(ctx, canvas.width/2, canvas.height/2, 200, 110, img3src, 10, -50, 0.10, 450)
 	const closedEye = new Blink(ctx, lidEye, canvas.width/2, canvas.height/2, 797, 309, {
 		minInterval: 3000, 
 		maxInterval: 8000,
@@ -423,7 +428,7 @@ window.addEventListener('load', () => {
 		lineSpacing: 2, 
 		lineOpacity: 0.5,
 		flickerStrength: 0.3,
-		vignetteStrength: 0.8,
+		vignetteStrength: 8,
 		distortion: 0.005
 	})
 	console.log(eye)
@@ -447,5 +452,9 @@ window.addEventListener('load', () => {
 		requestAnimationFrame(animate);
 	}
 	animate()	
-		
+	window.addEventListener('mousedown', (e) =>{
+		if (e.buttons === 1 ){
+			closedEye.triggerBlink()
+		}
+	})	
 })
