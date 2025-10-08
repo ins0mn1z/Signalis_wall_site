@@ -452,9 +452,4 @@ window.addEventListener('load', () => {
 		requestAnimationFrame(animate);
 	}
 	animate()	
-	window.addEventListener('mousedown', (e) =>{
-		if (e.buttons === 1 ){
-			closedEye.triggerBlink()
-		}
-	})	
 })
